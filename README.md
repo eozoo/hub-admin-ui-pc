@@ -17,13 +17,13 @@ npm run dev
 npm run build:uat
 ```
 
-开发服务器默认运行在 `http://localhost:8080`，`/dev-api/admin` 会代理到 `http://localhost:19010/admin`。
+开发服务器固定运行在 `http://localhost:8081`，`/dev-api/admin` 会代理到 `http://localhost:19010/admin`。
 
 ## 目录约定
 
 ```text
 src/
-├── api/          接口定义
+├── api/          按 auth/rbac/sys/tenant/notice/flow/home 领域归类
 ├── components/   通用组件
 ├── composables/  组合式能力（如字典）
 ├── directives/   权限指令
@@ -33,7 +33,7 @@ src/
 ├── styles/       全局样式
 ├── types/        领域类型
 ├── utils/        请求、缓存、权限等基础设施
-└── views/        页面
+└── views/        按领域归类的页面
 ```
 
 按钮权限使用 `v-has-permi="['sys:user:add']"`，角色权限使用 `v-has-role="['admin']"`。字典通过 `useDict('dict_type')` 获取并由 Pinia 统一缓存。

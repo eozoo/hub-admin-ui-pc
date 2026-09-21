@@ -3,13 +3,17 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import router from '@/router'
 import { tokenStorage } from '@/utils/storage'
 import type { ApiResponse } from '@/types/api'
-import type { TokenPair } from '@/types/auth'
 import type { RequestConfig } from './types'
+import { getLocale } from '@/utils/locale'
+import { refreshSession } from '@/utils/auth-session'
 
-type RetryConfig = InternalAxiosRequestConfig & RequestConfig & { _retry?: boolean; _pendingKey?: string }
+type RetryConfig = InternalAxiosRequestConfig & RequestConfig & {
+  _retry?: boolean
+  _pendingKey?: string
+  _authVersion?: string | null
+}
 
 const pendingRequests = new Set<string>()
-let refreshing: Promise<string> | null = null
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_API_BASE,
@@ -25,13 +29,19 @@ function releasePending(config?: RetryConfig): void {
   if (config?._pendingKey) pendingRequests.delete(config._pendingKey)
 }
 
-service.interceptors.request.use(config => {
+service.interceptors.request.use(async (config) => {
   const requestConfig = config as RetryConfig
   if (requestConfig.requireToken !== false) {
-    const token = tokenStorage.getAccessToken()
-    if (token) requestConfig.headers.Authorization = `Bearer ${token}`
+    let tokens = tokenStorage.getTokens()
+    if (!tokens) {
+      await refreshSession()
+      tokens = tokenStorage.getTokens()
+    }
+    if (tokens) requestConfig.headers.Authorization = `Bearer ${tokens.accessToken}`
+    // 从同一份令牌对记录捕获Refresh快照，供旧请求响应的版本比较使用。
+    requestConfig._authVersion = tokens?.refreshToken ?? null
   }
-  requestConfig.headers['Accept-Language'] = 'zh-CN'
+  requestConfig.headers['Accept-Language'] = getLocale()
 
   const method = requestConfig.method?.toLowerCase()
   if (requestConfig.noRepeat !== false && ['post', 'put', 'patch', 'delete'].includes(method ?? '')) {
@@ -43,30 +53,8 @@ service.interceptors.request.use(config => {
   return requestConfig
 })
 
-async function refreshAccessToken(): Promise<string> {
-  if (!refreshing) {
-    const refreshToken = tokenStorage.getRefreshToken()
-    if (!refreshToken) throw new Error('登录状态已失效')
-
-    refreshing = axios
-      .get<ApiResponse<TokenPair>>('/admin/api/v1/auth/public/refresh', {
-        baseURL: import.meta.env.VITE_API_BASE,
-        params: { refreshToken },
-        timeout: 10_000
-      })
-      .then(({ data }) => {
-        tokenStorage.setTokens(data.data)
-        return data.data.accessToken
-      })
-      .finally(() => {
-        refreshing = null
-      })
-  }
-  return refreshing
-}
-
 service.interceptors.response.use(
-  response => {
+  (response) => {
     releasePending(response.config as RetryConfig)
     return response.data
   },
@@ -75,28 +63,38 @@ service.interceptors.response.use(
     releasePending(config)
     const status = error.response?.status
 
-    if (status === 498 && config && !config._retry && !config.skipAuthRefresh) {
+    const versionChanged = config?._authVersion !== tokenStorage.getRefreshToken()
+    if ((status === 498 || (status === 401 && versionChanged)) && config
+        && config.requireToken !== false && !config._retry && !config.skipAuthRefresh) {
       config._retry = true
       try {
-        const accessToken = await refreshAccessToken()
+        const accessToken = await refreshSession(String(config.headers.Authorization ?? ''))
         config.headers.Authorization = `Bearer ${accessToken}`
         return service(config)
-      } catch {
-        tokenStorage.clearTokens()
-        await router.replace({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
-        return Promise.reject(error)
+      } catch (refreshError) {
+        if (axios.isAxiosError(refreshError) && refreshError.response?.status === 401
+            && !tokenStorage.getRefreshToken()) {
+          await router.replace({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+        }
+        if (!config.noNotify && !(axios.isAxiosError(refreshError) && refreshError.response?.status === 401)) {
+          ElMessage.error(refreshError instanceof Error ? refreshError.message : '服务请求失败')
+        }
+        return Promise.reject(refreshError)
       }
     }
 
     const message = error.response?.data?.msg || error.message || '服务请求失败'
-    if (status === 401) {
-      tokenStorage.clearTokens()
+    if (status === 401 && config?.requireToken !== false && !versionChanged) {
+      tokenStorage.clearTokens(config?._authVersion ?? null)
+      if (config?.noNotify) return Promise.reject(error)
       if (router.currentRoute.value.name !== 'Login') {
         await ElMessageBox.alert(message, '登录提示', { type: 'warning' })
         await router.replace({ name: 'Login' })
       } else {
         ElNotification.error({ title: '认证失败', message })
       }
+    } else if (status === 401 && !config?.noNotify) {
+      ElNotification.error({ title: '认证失败', message })
     } else if (!config?.noNotify) {
       ElMessage.error(message)
     }

@@ -5,9 +5,9 @@ function matchPermission(source: string, target: string): boolean {
 }
 
 export function hasPermission(owned: string[], required: string[]): boolean {
-  return required.some(target => owned.some(source => matchPermission(source, target)))
+  return required.some((target) => owned.some((source) => matchPermission(source, target)))
 }
 
 export function hasRole(owned: string[], required: string[]): boolean {
-  return owned.includes('sysAdmin') || required.some(role => owned.includes(role))
+  return owned.includes('sysAdmin') || required.some((role) => owned.includes(role))
 }

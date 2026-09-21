@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { getDictByType, type DictItem } from '@/api/dict'
+import { getDictByType, type DictItem } from '@/api/sys/dict'
 
 export const useDictStore = defineStore('dict', () => {
   const cache = ref<Record<string, DictItem[]>>({})

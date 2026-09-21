@@ -1,14 +1,82 @@
 :root {
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-  color: #1f2937;
-  background: #f4f7fb;
+  --app-primary: #5a77a8;
+  --app-primary-hover: #496794;
+  --app-accent: #8b9cf6;
+  --app-highlight: #61ddaa;
+  --app-bg: #f6f8fc;
+  --app-surface: #ffffff;
+  --app-border: #e5eaf2;
+  --app-text: #25324b;
+  --app-text-secondary: #61708a;
+  --app-text-muted: #7a8599;
+  --app-text-disabled: #b8c0cc;
+  --app-sidebar-bg: #ffffff;
+  --app-sidebar-border: #e5eaf2;
+  --app-sidebar-text: #61708a;
+  --app-sidebar-muted: #7a8599;
+  --app-sidebar-hover: #f4f7ff;
+  --app-sidebar-active: #edf3ff;
+  --app-sidebar-active-text: #5a77a8;
+  --el-color-success: #61ddaa;
+  --el-color-success-light-9: #effbf5;
+  --el-color-warning: #f6bd60;
+  --el-color-warning-light-9: #fff8ec;
+  --el-color-danger: #f08a8a;
+  --el-color-danger-light-9: #fef3f3;
+  --el-color-error: #f08a8a;
+  --el-color-error-light-9: #fef3f3;
+  --el-color-info: #6dc8ec;
+  --el-color-info-light-9: #eef9fd;
+  font-family:
+    Inter,
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--app-text);
+  background: var(--app-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
-* { box-sizing: border-box; }
-html, body, #app { min-width: 320px; min-height: 100%; margin: 0; }
-button, input { font: inherit; }
-a { text-decoration: none; }
+:root[data-sidebar-theme='dark'] {
+  --app-sidebar-bg: #25324b;
+  --app-sidebar-border: #25324b;
+  --app-sidebar-text: #e5eaf5;
+  --app-sidebar-muted: #b8c0cc;
+  --app-sidebar-hover: #344361;
+  --app-sidebar-active: #42557a;
+  --app-sidebar-active-text: #ffffff;
+}
 
-#nprogress .bar { background: #32b6c6; }
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#app {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+html.app-weak #app {
+  filter: invert(0.8);
+}
+
+html.app-grey #app,
+html.app-memorial #app {
+  filter: grayscale(1);
+}
+button,
+input {
+  font: inherit;
+}
+a {
+  text-decoration: none;
+}
+
+#nprogress .bar {
+  background: var(--app-primary);
+}

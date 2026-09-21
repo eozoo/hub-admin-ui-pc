@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DictItem } from '@/api/dict'
+import type { DictItem } from '@/api/sys/dict'
 
 const props = defineProps<{
   options: DictItem[]
@@ -8,7 +8,9 @@ const props = defineProps<{
 }>()
 
 const values = computed(() => (Array.isArray(props.value) ? props.value : [props.value]))
-const selected = computed(() => props.options.filter(item => values.value.map(String).includes(String(item.dictValue))))
+const selected = computed(() =>
+  props.options.filter((item) => values.value.map(String).includes(String(item.dictValue)))
+)
 </script>
 
 <template>

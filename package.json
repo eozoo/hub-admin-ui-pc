@@ -3,21 +3,27 @@
   "version": "1.0.5",
   "private": true,
   "type": "module",
-  "description": "Cowave Hub management console for PC",
+  "description": "Hub management console for PC",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "build:uat": "vue-tsc --noEmit && vite build --mode uat",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@element-plus/icons-vue": "2.3.1",
+    "@types/qrcode": "^1.5.5",
     "axios": "1.7.9",
     "element-plus": "2.9.1",
     "nprogress": "0.2.0",
     "pinia": "2.3.0",
+    "qrcode": "^1.5.4",
+    "socket.io-client": "4.8.1",
     "vue": "3.5.13",
+    "vue-i18n": "11.1.10",
     "vue-router": "4.5.0"
   },
   "devDependencies": {
@@ -25,6 +31,7 @@
     "@types/nprogress": "0.2.3",
     "@vitejs/plugin-vue": "5.2.1",
     "fast-glob": "3.3.2",
+    "prettier": "3.4.2",
     "sass": "1.83.0",
     "typescript": "5.7.2",
     "vite": "5.4.14",

@@ -1,6 +1,6 @@
 import type { App, DirectiveBinding } from 'vue'
 import { pinia } from '@/stores'
-import { useUserStore } from '@/stores/modules/user'
+import { useAuthStore } from '@/stores/modules/auth'
 import { hasPermission, hasRole } from '@/utils/permission'
 
 function removeElement(el: HTMLElement): void {
@@ -10,14 +10,14 @@ function removeElement(el: HTMLElement): void {
 function checkPermission(el: HTMLElement, binding: DirectiveBinding<string[]>): void {
   const required = binding.value
   if (!Array.isArray(required) || required.length === 0) return
-  const user = useUserStore(pinia)
+  const user = useAuthStore(pinia)
   if (!hasPermission(user.permissions, required)) removeElement(el)
 }
 
 function checkRole(el: HTMLElement, binding: DirectiveBinding<string[]>): void {
   const required = binding.value
   if (!Array.isArray(required) || required.length === 0) return
-  const user = useUserStore(pinia)
+  const user = useAuthStore(pinia)
   if (!hasRole(user.roles, required)) removeElement(el)
 }
 

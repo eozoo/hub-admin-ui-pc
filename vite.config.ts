@@ -20,12 +20,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
-      port: 8080,
+      port: 8081,
+      strictPort: true,
       proxy: {
         [`${env.VITE_API_BASE}/admin`]: {
           target: 'http://localhost:19010/admin',
           changeOrigin: true,
-          rewrite: path => path.replace(new RegExp(`^${env.VITE_API_BASE}/admin`), '')
+          rewrite: (path) => path.replace(new RegExp(`^${env.VITE_API_BASE}/admin`), '')
         }
       }
     },

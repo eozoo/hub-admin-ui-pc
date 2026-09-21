@@ -1,6 +1,5 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { getAuthMenus } from '@/api/auth'
 import { transformMenuRoutes } from '@/router/transform'
 import type { MenuRoute } from '@/types/router'
 import type { RouteRecordRaw } from 'vue-router'
@@ -10,10 +9,19 @@ export const usePermissionStore = defineStore('permission', () => {
   const accessRoutes = ref<RouteRecordRaw[]>([])
   const generated = ref(false)
 
-  async function generateRoutes() {
-    const { data } = await getAuthMenus()
-    menuRoutes.value = data
-    accessRoutes.value = transformMenuRoutes(data)
+  const systemMenu = computed(() => menuRoutes.value.find((menu) => menu.path.replace(/^\//, '') === 'system'))
+  const normalMenuRoutes = computed(() => menuRoutes.value.filter((menu) =>
+    !['system', 'dashboard'].includes(menu.path.replace(/^\//, ''))
+  ))
+  const systemMenuRoutes = computed(() => systemMenu.value?.children ?? [])
+  const systemMenuBasePath = computed(() => {
+    const path = systemMenu.value?.path ?? '/system'
+    return path.startsWith('/') ? path : `/${path}`
+  })
+
+  function generateRoutes(menus: MenuRoute[]) {
+    menuRoutes.value = menus
+    accessRoutes.value = transformMenuRoutes(menus)
     generated.value = true
     return accessRoutes.value
   }
@@ -24,5 +32,14 @@ export const usePermissionStore = defineStore('permission', () => {
     generated.value = false
   }
 
-  return { menuRoutes, accessRoutes, generated, generateRoutes, reset }
+  return {
+    menuRoutes,
+    normalMenuRoutes,
+    systemMenuRoutes,
+    systemMenuBasePath,
+    accessRoutes,
+    generated,
+    generateRoutes,
+    reset
+  }
 })
